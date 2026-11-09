@@ -582,14 +582,14 @@ CHISTES = [
 # Mensaje de bienvenida inicial del Chatbot
 # -----------------------------------------------------------------------------
 MENSAJE_BIENVENIDA = (
-    "¡Hola! 👋 Soy tu **Chatbot Básico Contextual en Shiny for Python**.\n\n"
-    "🧠 **¡Entiendo el contexto de nuestra conversación!** Recuerdo tu nombre, el tema del que estamos hablando "
+    "¡Hola! 👋 Soy tu **Chatbot Básico en Shiny for Python**.\n\n"
+    "Recuerdo tu nombre, el tema del que estamos hablando "
     "y tus preguntas anteriores para que puedas hacer **preguntas de seguimiento naturales**.\n\n"
     "Puedes conversar conmigo sobre:\n"
     "- 🐍 **Python**, ✨ **Shiny** o 🗄️ **SQL**\n"
     "- 📊 **Ciencia de Datos**, 📈 **Estadística** o 🎨 **Visualización**\n"
     "- 🤖 **Machine Learning / IA**\n"
-    "- 🔗 **Seguimiento en contexto**: Después de preguntar por un tema, escribe *«dame un ejemplo»*, *«muéstrame código»*, *«¿cuál es la diferencia?»*, *«cuéntame más»* o *«¿de qué estábamos hablando?»*.\n\n"
+    "- 🔗 **Preguntas de seguimiento**: Después de preguntar por un tema, escribe *«dame un ejemplo»*, *«muéstrame código»*, *«¿cuál es la diferencia?»*, *«cuéntame más»* o *«¿de qué estábamos hablando?»*.\n\n"
     "¿Cómo te llamas o sobre qué tema te gustaría conversar hoy?"
 )
 
@@ -763,17 +763,15 @@ def construir_respuesta_cruce_temas(tema_anterior: str, tema_nuevo: str, aspecto
     if tema_nuevo == "python" and tema_anterior in ("estadistica", "machine_learning", "ciencia_datos", "visualizacion", "sql_datos"):
         info_ant = BASE_CONOCIMIENTO[tema_anterior]
         return (
-            f"🔗 **Conectando el contexto ({info_ant['nombre']} ➔ Python)**:\n\n"
             f"Como estábamos hablando de **{info_ant['nombre']}**, así es como lo llevamos a la práctica en **Python**:\n\n"
             f"{info_ant['codigo']}\n\n"
-            f"💡 *Ahora el contexto activo pasó a **Python**, pero recuerdo que veníamos de **{info_ant['nombre']}**.*"
+            f"💡 *Ahora el tema activo pasó a **Python**, recordando que veníamos de **{info_ant['nombre']}**.*"
         )
 
     # Caso 2: Estaba en Python / ML / Estadística / Ciencia de Datos y pregunta cómo llevarlo a Shiny
     if tema_nuevo == "shiny" and tema_anterior in ("python", "machine_learning", "estadistica", "ciencia_datos", "visualizacion"):
         info_ant = BASE_CONOCIMIENTO[tema_anterior]
         return (
-            f"🔗 **Conectando el contexto ({info_ant['nombre']} ➔ Shiny for Python)**:\n\n"
             f"Para integrar tu trabajo de **{info_ant['nombre']}** dentro de una aplicación **Shiny**:\n"
             f"1. Colocas tus controles de entrada en `app_ui` (por ejemplo, `ui.input_slider` o `ui.input_select`).\n"
             f"2. Ejecutas el procesamiento de **{info_ant['nombre']}** dentro de una función `@reactive.calc` en el servidor.\n"
@@ -862,7 +860,7 @@ def generar_respuesta_bot(texto_usuario: str, contexto: dict, modo: str = "amiga
             contexto["tema_actual"] = tema_prev
             info_prev = BASE_CONOCIMIENTO[tema_prev]
             respuesta = (
-                f"🔄 ¡Listo{saludo_personal}! Hemos regresado al contexto anterior: **{info_prev['nombre']}**.\n\n"
+                f"🔄 ¡Listo{saludo_personal}! Hemos regresado al tema anterior: **{info_prev['nombre']}**.\n\n"
                 f"{info_prev['definicion']}"
             )
         else:
@@ -956,7 +954,7 @@ def generar_respuesta_bot(texto_usuario: str, contexto: dict, modo: str = "amiga
         sub_info = SUBTEMAS_ESPECIFICOS[subtema_det]
         contexto["ultimo_aspecto"] = "profundizacion"
         respuesta = (
-            f"🔎 **Contexto: {sub_info['titulo']}**:\n\n"
+            f"### {sub_info['titulo']}\n\n"
             f"{sub_info['respuesta']}\n\n"
             f"💡 *Puedes seguir preguntando «dame otro ejemplo», «muéstrame código» o «¿cuál es la diferencia?».*"
         )
@@ -983,14 +981,11 @@ def generar_respuesta_bot(texto_usuario: str, contexto: dict, modo: str = "amiga
             respuesta = prefijo_nombre + cruce
         elif aspecto_detectado and aspecto_detectado in info:
             contexto["ultimo_aspecto"] = aspecto_detectado
-            respuesta = (
-                f"{prefijo_nombre}📌 **Contexto: {info['nombre']} ({aspecto_detectado.capitalize()})**\n\n"
-                f"{info[aspecto_detectado]}"
-            )
+            respuesta = f"{prefijo_nombre}{info[aspecto_detectado]}"
         elif tema_detectado == tema_anterior and contexto.get("ultimo_aspecto") == "definicion":
             # Si ya estaba en este tema y vuelve a preguntar por él, profundizamos en vez de repetir la definición
             contexto["ultimo_aspecto"] = "profundizacion"
-            respuesta = f"{prefijo_nombre}🔗 **Ampliando el contexto de {info['nombre']}**:\n\n{info['profundizacion']}"
+            respuesta = f"{prefijo_nombre}{info['profundizacion']}"
         else:
             contexto["ultimo_aspecto"] = "definicion"
             respuesta = f"{prefijo_nombre}{info['definicion']}"
@@ -1009,20 +1004,7 @@ def generar_respuesta_bot(texto_usuario: str, contexto: dict, modo: str = "amiga
             contexto["aspecto_rotado"] = aspecto_a_usar
 
         contexto["ultimo_aspecto"] = aspecto_a_usar
-        etiqueta_aspecto = {
-            "ejemplo": "Ejemplo Práctico",
-            "codigo": "Implementación en Código",
-            "profundizacion": "Profundización",
-            "ventajas": "Ventajas y Aplicaciones",
-            "instalacion": "Instalación y Primeros Pasos",
-            "comparacion": "Tabla Comparativa",
-            "formula": "Fórmula / Modelo",
-        }.get(aspecto_a_usar, "Detalle")
-
-        respuesta = (
-            f"🔗 **Siguiendo con nuestro contexto de {info['nombre']} ({etiqueta_aspecto})**:\n\n"
-            f"{info[aspecto_a_usar]}"
-        )
+        respuesta = info[aspecto_a_usar]
 
     # Si pide un ejemplo/código pero aún no hay ningún tema activo en la conversación
     elif aspecto_detectado and tema_anterior == "ninguno":
@@ -1105,7 +1087,7 @@ def generar_respuesta_bot(texto_usuario: str, contexto: dict, modo: str = "amiga
         sig = "profundizacion" if ult == "definicion" else ("ejemplo" if ult == "profundizacion" else "codigo")
         contexto["ultimo_aspecto"] = sig
         respuesta = (
-            f"🔗 **Respondiendo en el contexto de {info['nombre']}** respecto a tu consulta (*«{texto_orig}»*):\n\n"
+            f"Respecto a **{info['nombre']}** (*«{texto_orig}»*):\n\n"
             f"{info[sig]}\n\n"
             f"💡 *También puedes pedirme sobre **{info['nombre']}**: «¿cuál es la diferencia?», «¿cuál es la fórmula?» o «¿cómo se instala?».*"
         )
@@ -1147,7 +1129,7 @@ app_ui = ui.page_sidebar(
     ui.sidebar(
         ui.h4("⚙️ Panel del Chatbot", class_="fw-bold text-primary mb-1"),
         ui.p(
-            "Chatbot con memoria de contexto conversacional construido con ui.Chat en Shiny.",
+            "Asistente conversacional básico construido con el componente nativo ui.Chat de Shiny.",
             class_="text-muted small mb-2",
         ),
         ui.input_select(
@@ -1182,7 +1164,7 @@ app_ui = ui.page_sidebar(
             "¿Qué es Machine Learning?",
             class_="btn-outline-primary btn-sm w-100 mb-2",
         ),
-        ui.h6("🔗 2. Seguimiento en Contexto:", class_="fw-bold mb-2"),
+        ui.h6("💡 2. Preguntas de Seguimiento:", class_="fw-bold mb-2"),
         ui.input_action_button(
             "btn_ctx_ejemplo",
             "🔎 Dame un ejemplo de esto",
@@ -1206,13 +1188,13 @@ app_ui = ui.page_sidebar(
         ui.hr(class_="my-2"),
         ui.input_action_button(
             "btn_limpiar",
-            "🗑️ Reiniciar Conversación y Contexto",
+            "🗑️ Reiniciar Conversación",
             class_="btn-danger btn-sm w-100",
         ),
         width=310,
     ),
     # Encabezado y KPIs superiores
-    ui.h3("🤖 Chatbot Básico con Memoria de Contexto en Shiny", class_="fw-bold mb-2"),
+    ui.h3("🤖 Chatbot Básico Interactivo con Shiny", class_="fw-bold mb-2"),
     ui.layout_columns(
         ui.value_box(
             "Mensajes del Usuario",
@@ -1220,7 +1202,7 @@ app_ui = ui.page_sidebar(
             theme="primary",
         ),
         ui.value_box(
-            "Contexto / Tema Activo",
+            "Tema Activo",
             ui.output_text("kpi_contexto"),
             theme="success",
         ),
@@ -1234,7 +1216,7 @@ app_ui = ui.page_sidebar(
     ),
     # Tarjeta principal que aloja el componente de Chat
     ui.card(
-        ui.card_header("💬 Ventana de Conversación (Con Memoria de Sesión)", class_="fw-bold"),
+        ui.card_header("💬 Ventana de Conversación", class_="fw-bold"),
         ui.chat_ui(
             id="chat_principal",
             placeholder="Escribe aquí (ej. 'Me llamo Rolando', '¿Qué es Estadística?', y luego 'Dame un ejemplo' o 'Muéstrame código')...",
@@ -1246,7 +1228,7 @@ app_ui = ui.page_sidebar(
         full_screen=True,
         fill=True,
     ),
-    title="Chatbot Básico Contextual - Shiny",
+    title="Chatbot Básico - Shiny",
     fillable=True,
 )
 

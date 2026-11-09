@@ -1,6 +1,6 @@
-# Chatbot Básico con Memoria de Contexto en Shiny for Python
+# Chatbot Básico en Shiny for Python
 
-Aplicación interactiva desarrollada con **Shiny for Python** que implementa un **Chatbot Básico Contextual** utilizando los componentes conversacionales nativos `ui.chat_ui()` y `ui.Chat()`, lista para ejecutarse localmente o desplegarse en **Posit Connect Cloud**.
+Aplicación interactiva desarrollada con **Shiny for Python** que implementa un **Chatbot Básico** utilizando los componentes conversacionales nativos `ui.chat_ui()` y `ui.Chat()`, lista para ejecutarse localmente o desplegarse en **Posit Connect Cloud**.
 
 ---
 
